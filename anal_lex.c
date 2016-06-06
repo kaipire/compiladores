@@ -1,4 +1,5 @@
-
+/*********** Import **************/
+#include "analizador.h"
 /*********** Librerias **************/
 #include<stdio.h>
 #include<string.h>
@@ -8,7 +9,8 @@
 /************* Variables globales **************/
 
 char fin;
-
+int tokens[100];
+int pos=0;
 // variables para el analizador lexico
 
 FILE *archivo;			// Fuente JSON
@@ -39,6 +41,7 @@ void validar()
         //imprimir salto de linea y continuar
 		else if(c=='\n')
 		{
+            tokens[pos++] = LINEA;
             printf("%c",c);			
 			continue;
 		}
@@ -51,6 +54,7 @@ void validar()
 				if (c=='\"')
 				{
                     ban=1;
+                    tokens[pos++] = COD_STRING;
                     printf("STRING ");
                     break;
                                     
@@ -69,37 +73,43 @@ void validar()
         }
         //validacion de signos
         else if (c == '{')
-        {   
+        {
+            tokens[pos++] = COD_LLLAVE; 
             printf("L_LLAVE ");
             break;
         }
 
         else if (c == '}')
         {   
+            tokens[pos++] = COD_RLLAVE; 
             printf("R_LLAVE ");
             break;
         }
 
         else if (c == '[')
-        {   
+        {
+            tokens[pos++] = COD_LCORCHETE;    
             printf("L_CORCHETE ");
             break;
         }
 
         else if (c == ']')
-        {   
+        {
+            tokens[pos++] = COD_RCORCHETE;    
             printf("R_CORCHETE ");
             break;
         }
 
         else if (c == ':')
-        {   
+        {
+            tokens[pos++] = COD_DOSPUNTOS;    
             printf("DOS_PUNTOS ");
             break;
         }
 
         else if (c == ',')
         {   
+            tokens[pos++] = COD_COMA; 
             printf("COMA ");
             break;
         }
@@ -116,31 +126,39 @@ void validar()
                   switch (estado){
                         case 0:
                             c = fgetc(archivo);                        
-                            if (c == 'a')
+                            if (c == 'a'){
                                 estado = 1;
-                            else
+                            }
+                            else{
                                 estado = -1;
+                            }
                             break;
                         case 1:
                             c = fgetc(archivo);                       
-                            if (c == 'l')
+                            if (c == 'l'){
                                 estado = 2;
-                            else
+                            }
+                            else{
                                 estado = -1;
+                            }
                             break;
                         case 2:
                             c = fgetc(archivo);                        
-                            if (c == 's')
+                            if (c == 's'){
                                 estado = 3;
-                            else
+                            }
+                            else{
                                 estado = -1;
+                            }
                             break;
                         case 3:
                             c = fgetc(archivo);                        
-                            if (c == 'e')
+                            if (c == 'e'){
                                 estado = 4;
-                            else
+                            }
+                            else{
                                 estado = -1;
+                            }
                             break;
                         case 4:
                             c = fgetc(archivo);
@@ -154,6 +172,7 @@ void validar()
 						        ungetc(c,archivo);
 					        else
 						        c=0;
+                            tokens[pos++] = COD_FALSE;
 				            printf("PR_FALSE ");
                             acepto=1;
                             break;
@@ -178,29 +197,33 @@ void validar()
                   switch (estado){
                         case 0:
                             c = fgetc(archivo);                      
-                            if (c == 'A')
+                            if (c == 'A'){
                                 estado = 1;
+                            }
                             else
                                 estado = -1;
                             break;
                         case 1:
                             c = fgetc(archivo);                        
-                            if (c == 'L')
+                            if (c == 'L'){
                                 estado = 2;
+                            }
                             else
                                 estado = -1;
                             break;
                         case 2:
                             c = fgetc(archivo);                        
-                            if (c == 'S')
+                            if (c == 'S'){
                                 estado = 3;
+                            }
                             else
                                 estado = -1;
                             break;
                         case 3:
                             c = fgetc(archivo);                        
-                            if (c == 'E')
+                            if (c == 'E'){
                                 estado = 4;
+                            }
                             else
                                 estado = -1;
                             break;
@@ -216,6 +239,7 @@ void validar()
 						        ungetc(c,archivo);
 					        else
 						        c=0;
+                            tokens[pos++] = COD_FALSE;                            
 				            printf("PR_FALSE ");
                             acepto=1;
                             break;
@@ -241,7 +265,7 @@ void validar()
         }
         //fin validacion false
         else if (c == 't' || c == 'T')
-        {   //validar true
+        {   //validar true       
             estado = 0;
             acepto = 0;
             char aux = c;
@@ -251,22 +275,25 @@ void validar()
                   switch (estado){
                         case 0:
                             c = fgetc(archivo);                        
-                            if (c == 'r')
+                            if (c == 'r'){
                                 estado = 1;
+                            }
                             else
                                 estado = -1;
                             break;
                         case 1:
                             c = fgetc(archivo);                       
-                            if (c == 'u')
+                            if (c == 'u'){
                                 estado = 2;
+                            }
                             else
                                 estado = -1;
                             break;
                         case 2:
                             c = fgetc(archivo);                        
-                            if (c == 'e')
+                            if (c == 'e'){
                                 estado = 3;
+                            }
                             else
                                 estado = -1;
                             break;
@@ -283,6 +310,7 @@ void validar()
 						        ungetc(c,archivo);
 					        else
 						        c=0;
+                            tokens[pos++] = COD_TRUE;
 				            printf("PR_TRUE ");
                             acepto=1;
                             break;
@@ -307,22 +335,25 @@ void validar()
                   switch (estado){
                         case 0:
                             c = fgetc(archivo);                      
-                            if (c == 'R')
+                            if (c == 'R'){
                                 estado = 1;
+                            }
                             else
                                 estado = -1;
                             break;
                         case 1:
                             c = fgetc(archivo);                        
-                            if (c == 'U')
+                            if (c == 'U'){
                                 estado = 2;
+                            }
                             else
                                 estado = -1;
                             break;
                         case 2:
                             c = fgetc(archivo);                        
-                            if (c == 'E')
+                            if (c == 'E'){
                                 estado = 3;
+                            }
                             else
                                 estado = -1;
                             break;
@@ -340,6 +371,7 @@ void validar()
 						        ungetc(c,archivo);
 					        else
 						        c=0;
+                            tokens[pos++] = COD_TRUE;
 				            printf("PR_TRUE ");
                             acepto=1;
                             break;
@@ -375,22 +407,25 @@ void validar()
                   switch (estado){
                         case 0:
                             c = fgetc(archivo);                        
-                            if (c == 'u')
+                            if (c == 'u'){
                                 estado = 1;
+                            }
                             else
                                 estado = -1;
                             break;
                         case 1:
                             c = fgetc(archivo);                       
-                            if (c == 'l')
+                            if (c == 'l'){
                                 estado = 2;
+                            }
                             else
                                 estado = -1;
                             break;
                         case 2:
                             c = fgetc(archivo);                        
-                            if (c == 'l')
+                            if (c == 'l'){
                                 estado = 3;
+                            }
                             else
                                 estado = -1;
                             break;
@@ -407,6 +442,7 @@ void validar()
 						        ungetc(c,archivo);
 					        else
 						        c=0;
+                            tokens[pos++] = COD_NULL;
 				            printf("PR_NULL ");
                             acepto=1;
                             break;
@@ -431,22 +467,25 @@ void validar()
                   switch (estado){
                         case 0:
                             c = fgetc(archivo);                      
-                            if (c == 'U')
+                            if (c == 'U'){
                                 estado = 1;
+                            }
                             else
                                 estado = -1;
                             break;
                         case 1:
                             c = fgetc(archivo);                        
-                            if (c == 'L')
+                            if (c == 'L'){
                                 estado = 2;
+                            }
                             else
                                 estado = -1;
                             break;
                         case 2:
                             c = fgetc(archivo);                        
-                            if (c == 'L')
+                            if (c == 'L'){
                                 estado = 3;
+                            }
                             else
                                 estado = -1;
                             break;
@@ -464,6 +503,7 @@ void validar()
 						        ungetc(c,archivo);
 					        else
 						        c=0;
+                            tokens[pos++] = COD_NULL;
 				            printf("PR_NULL ");
                             acepto=1;
                             break;
@@ -487,7 +527,7 @@ void validar()
             }
             break;
         }
-//fin de validacion null
+        //fin de validacion null
         else if (isdigit(c))
         {//validar numero
             estado = 0;
@@ -585,6 +625,7 @@ void validar()
 						    ungetc(c,archivo);
 					    else
 						    c=0;
+                        tokens[pos++] = COD_NUMBER;
 				        printf("NUMBER ");
                         acepto=1;
                         break;
@@ -617,6 +658,7 @@ void validar()
         }
     }    
     if (c == EOF){
+        tokens[pos++] = EOF;
         fin = EOF;
     }
 
@@ -625,7 +667,7 @@ void validar()
 int main(int argc,char* args[])
 {
 	// inicializar analizador lexico
-	
+	int i;
 	if(argc > 1)
 	{
 		if (!(archivo=fopen(args[1],"rt")))
@@ -637,6 +679,8 @@ int main(int argc,char* args[])
 			validar();
 		}
 		fclose(archivo);
+    //aqui inicia el analizador sintactico
+        parser(copiar(tokens));
 	}else{
 		printf("Debe pasar como parametro el path al archivo fuente.\n");
 		exit(1);
