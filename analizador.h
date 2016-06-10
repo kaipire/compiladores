@@ -18,12 +18,24 @@
 #define COD_COMA        11
 
 #define LINEA           12
+#define ESPACIO         13
+#define TAB             14
 
 #define TAM 500
+#define TAMLEX 50
+#define TOTAL 1000
+#define CONJ 10
+
+//estructura
+typedef struct {
+	int compLex;
+	char lexema[TAMLEX];
+} token;
 
 // prototipos de funciones
-int* copiar(int tokens[]);
-void parser(int tokens[]);
+void validar();
+token* copiar(token tokens[]);
+void parser(token tokens[]);
 void jsonml();
 void element(int sinc[]);
 void object(int sinc[]);
@@ -41,11 +53,13 @@ void att_value(int sinc[]);
 //metodos de validacion
 void match(int);
 void get_token();
+
 //recuperacion de errores
 void scanto(int sinc[]);
 void checkinput(int pro[], int sgte[]);
 void error(const char*);
+
 //auxiliares
 int buscar(int sinc[]);
 int* volcar(int pro[], int sgte[]);
-
+char* sin_comilla(char vector[]);
