@@ -4,3 +4,4 @@ Integrantes
 -Fernando Jara   CI: 3530288
 
 Para compilar: $gcc anal_lex.c an_sint.c -o sint
+traductor implementado en el archivo an_sint.c (viernes 10 de junio 2016 14:00)
