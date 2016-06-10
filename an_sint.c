@@ -6,22 +6,27 @@
 #include<stdlib.h>
 #include<ctype.h>
 //variables globales
-int combi[10];
-int t_actual;
-int input[100];
-int poss = 0;
+int combi[CONJ];//array que contiene los conjunto primero y siguiente
+token t_actual; //en esta estructura se guarda el token leido del array de tokens
+token auxiliar;//token auxiliar
+token input[TOTAL];// array que contiene todos lo tokens del fuente
+int poss = 0;//indice del array de tokens
 int flag=0;
-int numLinea = 1;
+int numLinea = 0;//contador de saltos de linea
+char lex_actual[TAMLEX]; //array que almacena el lexema actual
+int k = -1; //contador de anidamiento de llamadas a la funcion attribute
+token lex[TAMLEX]; //array que va almacenando los lexemas que se anidan
 
 //funcion que copia el vector de tokens devuelto por el analizador lexico
-int* copiar(int tokens[]){
+token* copiar(token tokens[]){
     int i;
-    for (i = 0; i < 100; i++){
+    for (i = 0; i < TOTAL; i++){
         input[i] = tokens[i];   
     }
+
 }
 //aqui inicia el analizador sintactico descendente recursivo
-void parser(int input[])
+void parser(token input[])
 {
     get_token();
     jsonml();
@@ -32,8 +37,8 @@ void parser(int input[])
 
 void jsonml(int sinc[])
 {
-    int ele_sig [10]={EOF,COD_COMA, COD_RCORCHETE, COD_RLLAVE};
-    if(t_actual == COD_LLLAVE || t_actual == COD_LCORCHETE){
+    int ele_sig [CONJ]={EOF,COD_COMA, COD_RCORCHETE, COD_RLLAVE};
+    if(t_actual.compLex== COD_LLLAVE || t_actual.compLex == COD_LCORCHETE){
         element(ele_sig);
     }else
     {
@@ -43,9 +48,9 @@ void jsonml(int sinc[])
 
 void element(int sinc[])
 {
-    int ele_pro[10] = {COD_LLLAVE, COD_LCORCHETE};
+    int ele_pro[CONJ] = {COD_LLLAVE, COD_LCORCHETE};
     checkinput(ele_pro, sinc);
-    switch(t_actual)
+    switch(t_actual.compLex)
     {
         case COD_LLLAVE:
             object(sinc);
@@ -62,9 +67,9 @@ void element(int sinc[])
 
 void object(int sinc[])
 {
-    int obj_pro[10]={COD_LLLAVE};
+    int obj_pro[CONJ]={COD_LLLAVE};
     checkinput(obj_pro,sinc);
-    switch (t_actual)
+    switch (t_actual.compLex)
     {
         case COD_LLLAVE:
             match(COD_LLLAVE);        
@@ -79,9 +84,9 @@ void object(int sinc[])
 
 void array(int sinc[])
 {
-    int array_pro[10]={COD_LCORCHETE};
+    int array_pro[CONJ]={COD_LCORCHETE};
     checkinput(array_pro,sinc);
-    switch (t_actual)
+    switch (t_actual.compLex)
     {
         case COD_LCORCHETE:
             match(COD_LCORCHETE);        
@@ -97,10 +102,10 @@ void array(int sinc[])
 
 void pr_object(int sinc[])
 {
-    int pr_objpro[10]={COD_STRING,COD_RLLAVE};
-    int attlist_sig[10]={COD_RLLAVE};
+    int pr_objpro[CONJ]={COD_STRING,COD_RLLAVE};
+    int attlist_sig[CONJ]={COD_RLLAVE};
     checkinput(pr_objpro,sinc);
-    switch (t_actual)
+    switch (t_actual.compLex)
     {
         case COD_STRING:
             att_list(attlist_sig);
@@ -118,10 +123,10 @@ void pr_object(int sinc[])
 
 void pr_array(int sinc[])
 {
-    int pr_arpro[10]={COD_LLLAVE, COD_LCORCHETE, COD_RCORCHETE};
-    int elelist_sig[10]={COD_RCORCHETE};
+    int pr_arpro[CONJ]={COD_LLLAVE, COD_LCORCHETE, COD_RCORCHETE};
+    int elelist_sig[CONJ]={COD_RCORCHETE};
     checkinput(pr_arpro,sinc);
-    switch (t_actual)
+    switch (t_actual.compLex)
     {
         case COD_LLLAVE:
             ele_list(elelist_sig);
@@ -143,11 +148,13 @@ void pr_array(int sinc[])
 
 void ele_list(int sinc[])
 {
-    int elelist_pro[10]={COD_LLLAVE,COD_LCORCHETE};
-    int ele_sig [10]={EOF,COD_COMA, COD_RCORCHETE, COD_RLLAVE};
+    int elelist_pro[CONJ]={COD_LLLAVE,COD_LCORCHETE};
+    int ele_sig [CONJ]={EOF,COD_COMA, COD_RCORCHETE, COD_RLLAVE};
     checkinput(elelist_pro,sinc);
-    if(t_actual == COD_LLLAVE || t_actual == COD_LCORCHETE){
+    if(t_actual.compLex == COD_LLLAVE || t_actual.compLex == COD_LCORCHETE){
+        printf("<item>");
         element(ele_sig);
+        printf("</item>");
         pr_elelist(sinc);
     }else{
         error("Se esperaba L_LLAVE, L_CORCHETE");
@@ -157,18 +164,20 @@ void ele_list(int sinc[])
 
 void pr_elelist(int sinc[])
 {
-    int prlist_pro[10]={COD_COMA};
-    int ele_sig [10]={EOF,COD_COMA, COD_RCORCHETE, COD_RLLAVE};
-    if(t_actual==COD_RCORCHETE){
+    int prlist_pro[CONJ]={COD_COMA};
+    int ele_sig [CONJ]={EOF,COD_COMA, COD_RCORCHETE, COD_RLLAVE};
+    if(t_actual.compLex==COD_RCORCHETE){
         checkinput(sinc,prlist_pro);
     }else{
         checkinput(prlist_pro,sinc);
     }
-    switch(t_actual)
+    switch(t_actual.compLex)
     {
         case COD_COMA:
             match(COD_COMA);
+            printf("<item>");
             element(ele_sig);
+            printf("</item>");
             pr_elelist(sinc);
             break;
     }
@@ -177,13 +186,15 @@ void pr_elelist(int sinc[])
 
 void attribute(int sinc[])
 {
-    int att_pro[10]={COD_STRING};
-    int attname_sig[10]={COD_DOSPUNTOS};
+    int att_pro[CONJ]={COD_STRING};
+    int attname_sig[CONJ]={COD_DOSPUNTOS};
     checkinput(att_pro,sinc);
-    switch(t_actual)
+    switch(t_actual.compLex)
     {
         case COD_STRING:
-            att_name(attname_sig);
+            printf("<");
+            att_name(attname_sig);//llama a la funcion que va a imprimir el nombre del tag
+            printf(">");
             match(COD_DOSPUNTOS);
             att_value(sinc);
             break;
@@ -192,14 +203,19 @@ void attribute(int sinc[])
             break;
     }
     checkinput(sinc,att_pro);
+    printf("</");
+    auxiliar = lex[k];//se guarda el nombre de tag que corresponda
+    printf("%s",sin_comilla(auxiliar.lexema));//se imprime nombre de tag de cierre
+    k--;//se posiciona en el proximo nombre de tag
+    printf(">");
 }
 
 void att_list(int sinc[])
 {
-    int attlist_pro[10]={COD_STRING};
-    int att_sig[10] = {COD_COMA,COD_RLLAVE};
+    int attlist_pro[CONJ]={COD_STRING};
+    int att_sig[CONJ] = {COD_COMA,COD_RLLAVE};
     checkinput(attlist_pro,sinc);
-    if(t_actual==COD_STRING){
+    if(t_actual.compLex==COD_STRING){
         attribute(att_sig);
         pr_attlist(sinc);
     }else{
@@ -210,15 +226,15 @@ void att_list(int sinc[])
 
 void pr_attlist(int sinc[])
 {
-    int prattlist_pro[10]={COD_COMA};
-    int att_sig[10] = {COD_COMA,COD_RLLAVE};
+    int prattlist_pro[CONJ]={COD_COMA};
+    int att_sig[CONJ] = {COD_COMA,COD_RLLAVE};
     
-    if(t_actual == COD_RLLAVE){
+    if(t_actual.compLex == COD_RLLAVE){
         checkinput(sinc,prattlist_pro);
     }else{        
         checkinput(prattlist_pro,sinc);
     }
-    switch(t_actual)
+    switch(t_actual.compLex)
     {
         case COD_COMA:
             match(COD_COMA);
@@ -231,11 +247,13 @@ void pr_attlist(int sinc[])
 
 void att_name(int sinc[])
 {
-    int attname_pro[10]={COD_STRING};
+    int attname_pro[CONJ]={COD_STRING};
     checkinput(attname_pro,sinc);
-    switch(t_actual)
+    switch(t_actual.compLex)
     {
         case COD_STRING:
+            printf("%s",sin_comilla(t_actual.lexema));//imprime nombre del tag
+            lex[++k] = t_actual;//guarda nombre del tag en caso de anidamiento
             match(COD_STRING);
             break;
         default:
@@ -246,10 +264,10 @@ void att_name(int sinc[])
 
 void att_value(int sinc[])
 {
-    int attval_pro[10]={COD_LLLAVE, COD_LCORCHETE, COD_STRING, COD_NUMBER, COD_TRUE, COD_FALSE,COD_NULL};
-    int ele_sig [10]={EOF,COD_COMA, COD_RCORCHETE, COD_RLLAVE};
+    int attval_pro[CONJ]={COD_LLLAVE, COD_LCORCHETE, COD_STRING, COD_NUMBER, COD_TRUE, COD_FALSE,COD_NULL};
+    int ele_sig [CONJ]={EOF,COD_COMA, COD_RCORCHETE, COD_RLLAVE};
     checkinput(attval_pro,sinc);
-    switch(t_actual)
+    switch(t_actual.compLex)
     {
         case COD_LLLAVE:
             element(ele_sig);
@@ -258,18 +276,23 @@ void att_value(int sinc[])
             element(ele_sig);
             break;
         case COD_STRING:
+            printf("%s",t_actual.lexema);//imprime nombre del tag
             match(COD_STRING);
             break;
         case COD_NUMBER:
+            printf("%s",t_actual.lexema);//imprime nombre del tag
             match(COD_NUMBER);
             break;
         case COD_TRUE:
+            printf("%s",t_actual.lexema);//imprime nombre del tag
             match(COD_TRUE);
             break;
         case COD_FALSE:
+            printf("%s",t_actual.lexema);//imprime nombre del tag
             match(COD_FALSE);
             break;
         case COD_NULL:
+            printf("%s",t_actual.lexema);//imprime nombre del tag
             match(COD_NULL);
             break;
         default:
@@ -282,7 +305,7 @@ void att_value(int sinc[])
 //funciones del analizador
 void match(int t)
 {
-    if(t_actual == t){
+    if(t_actual.compLex == t){
         get_token();
     }
     else{
@@ -294,8 +317,13 @@ void match(int t)
 void get_token()
 {
     t_actual = input[poss++];
-    if (t_actual == LINEA){
+    if (t_actual.compLex == LINEA){
+        printf("%s",t_actual.lexema);
         numLinea++;
+        t_actual = input[poss++];
+    }
+    if (t_actual.compLex == ESPACIO || t_actual.compLex == TAB ){
+        printf("%s",t_actual.lexema);
         t_actual = input[poss++];
     }
 }
@@ -321,8 +349,8 @@ void checkinput(int pro[], int sgte[])
 int buscar(int sinc[]){
     int ban = 0;
     int i = 0;
-    for (i = 0; i<10;i++){
-        if (t_actual == sinc[i]){
+    for (i = 0; i<CONJ;i++){
+        if (t_actual.compLex == sinc[i]){
             ban = 1;
         }    
 
@@ -335,14 +363,14 @@ int* volcar(int pro[], int sgte[]){
     int cont=0;
     
     //meter el primero
-    for (i = 0; i < 10; i++){
+    for (i = 0; i < CONJ; i++){
         if(pro[i] != 0){
             combi[i] = pro[i];
             cont++;
         }
     }
     //meter el segundo
-    for (j = 0; j < 10; j++){
+    for (j = 0; j < CONJ; j++){
         if(sgte[j] != 0){
             combi[cont++] = sgte[j];
         }
@@ -350,6 +378,17 @@ int* volcar(int pro[], int sgte[]){
     return combi;
 }
 
+char* sin_comilla(char vector[]){
+    int i;
+    int size = strlen(vector);
+    for (i = 0; i < size; i++) {
+        if(vector[i] =='\"'){
+            vector[i] = ' ';
+        }
+
+    }
+    return vector;
+}
 //impresion de errores
 void error(const char* mensaje)
 {
