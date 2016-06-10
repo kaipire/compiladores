@@ -9,8 +9,10 @@
 /************* Variables globales **************/
 
 char fin;
-int tokens[100];
+token tokens[TOTAL];
+token t;
 int pos=0;
+char id[TAMLEX];
 // variables para el analizador lexico
 
 FILE *archivo;			// Fuente JSON
@@ -27,34 +29,51 @@ void validar()
 	int acepto=0;
 	int estado=0;
     int ban = 0;
+    int i = 0;
 
 	while((c=fgetc(archivo))!=EOF)
 	{   //imprimi espacio y y continuar
         if (c == ' '){
+            strcpy(t.lexema," ");
+            t.compLex = ESPACIO;
+            tokens[pos++] = t;
             printf("%c",c);
             continue;
         }//imprimir tabulador y continuar
         else if (c == '\t'){
+            strcpy(t.lexema,"\t");
+            t.compLex = TAB;
+            tokens[pos++] = t;
             printf("%c",c);
             continue;
         }
         //imprimir salto de linea y continuar
 		else if(c=='\n')
 		{
-            tokens[pos++] = LINEA;
+            strcpy(t.lexema,"\n");
+            t.compLex = LINEA;
+            tokens[pos++] = t;
             printf("%c",c);			
 			continue;
 		}
         else if (c=='\"')
 		{
             //validar string
+            i=0;
+            id[i]=c;
 			do
 			{
+                //id[i]=c;
+                //i++;
 				c=fgetc(archivo);
+                id[++i] = c;
 				if (c=='\"')
 				{
                     ban=1;
-                    tokens[pos++] = COD_STRING;
+                    id[++i]='\0';
+                    strcpy(t.lexema,id);
+                    t.compLex = COD_STRING;
+                    tokens[pos++] = t;
                     printf("STRING ");
                     break;
                                     
@@ -74,42 +93,54 @@ void validar()
         //validacion de signos
         else if (c == '{')
         {
-            tokens[pos++] = COD_LLLAVE; 
+            strcpy(t.lexema,"{");
+            t.compLex = COD_LLLAVE;
+            tokens[pos++] = t; 
             printf("L_LLAVE ");
             break;
         }
 
         else if (c == '}')
         {   
-            tokens[pos++] = COD_RLLAVE; 
+            strcpy(t.lexema,"}");
+            t.compLex = COD_RLLAVE;
+            tokens[pos++] = t; 
             printf("R_LLAVE ");
             break;
         }
 
         else if (c == '[')
         {
-            tokens[pos++] = COD_LCORCHETE;    
+            strcpy(t.lexema,"[");
+            t.compLex = COD_LCORCHETE;
+            tokens[pos++] = t;   
             printf("L_CORCHETE ");
             break;
         }
 
         else if (c == ']')
         {
-            tokens[pos++] = COD_RCORCHETE;    
+            strcpy(t.lexema,"]");
+            t.compLex = COD_RCORCHETE;
+            tokens[pos++] = t;    
             printf("R_CORCHETE ");
             break;
         }
 
         else if (c == ':')
         {
-            tokens[pos++] = COD_DOSPUNTOS;    
+            strcpy(t.lexema,":");
+            t.compLex = COD_DOSPUNTOS;
+            tokens[pos++] = t;   
             printf("DOS_PUNTOS ");
             break;
         }
 
         else if (c == ',')
         {   
-            tokens[pos++] = COD_COMA; 
+            strcpy(t.lexema,",");
+            t.compLex = COD_COMA;
+            tokens[pos++] = t; 
             printf("COMA ");
             break;
         }
@@ -120,6 +151,8 @@ void validar()
             acepto = 0;
             char aux = c;
             int cont = 0; 
+            i = 0;
+            id[i] = c;
             while(acepto == 0)
             {
                 if (aux == 'f'){
@@ -127,6 +160,7 @@ void validar()
                         case 0:
                             c = fgetc(archivo);                        
                             if (c == 'a'){
+                                id[++i] = c;
                                 estado = 1;
                             }
                             else{
@@ -136,6 +170,7 @@ void validar()
                         case 1:
                             c = fgetc(archivo);                       
                             if (c == 'l'){
+                                id[++i] = c;
                                 estado = 2;
                             }
                             else{
@@ -145,6 +180,7 @@ void validar()
                         case 2:
                             c = fgetc(archivo);                        
                             if (c == 's'){
+                                id[++i] = c;
                                 estado = 3;
                             }
                             else{
@@ -154,6 +190,7 @@ void validar()
                         case 3:
                             c = fgetc(archivo);                        
                             if (c == 'e'){
+                                id[++i] = c;
                                 estado = 4;
                             }
                             else{
@@ -172,7 +209,10 @@ void validar()
 						        ungetc(c,archivo);
 					        else
 						        c=0;
-                            tokens[pos++] = COD_FALSE;
+                            id[++i]='\0';
+                            strcpy(t.lexema,id);
+                            t.compLex = COD_FALSE;
+                            tokens[pos++] = t; 
 				            printf("PR_FALSE ");
                             acepto=1;
                             break;
@@ -198,6 +238,7 @@ void validar()
                         case 0:
                             c = fgetc(archivo);                      
                             if (c == 'A'){
+                                id[++i] = c;
                                 estado = 1;
                             }
                             else
@@ -206,6 +247,7 @@ void validar()
                         case 1:
                             c = fgetc(archivo);                        
                             if (c == 'L'){
+                                id[++i] = c;
                                 estado = 2;
                             }
                             else
@@ -214,6 +256,7 @@ void validar()
                         case 2:
                             c = fgetc(archivo);                        
                             if (c == 'S'){
+                                id[++i] = c;
                                 estado = 3;
                             }
                             else
@@ -222,6 +265,7 @@ void validar()
                         case 3:
                             c = fgetc(archivo);                        
                             if (c == 'E'){
+                                id[++i] = c;
                                 estado = 4;
                             }
                             else
@@ -239,7 +283,10 @@ void validar()
 						        ungetc(c,archivo);
 					        else
 						        c=0;
-                            tokens[pos++] = COD_FALSE;                            
+                            id[++i]='\0';
+                            strcpy(t.lexema,id);
+                            t.compLex = COD_FALSE;
+                            tokens[pos++] = t;                            
 				            printf("PR_FALSE ");
                             acepto=1;
                             break;
@@ -268,6 +315,8 @@ void validar()
         {   //validar true       
             estado = 0;
             acepto = 0;
+            i = 0;
+            id[i] = c;
             char aux = c;
             while(acepto == 0)
             {
@@ -276,6 +325,7 @@ void validar()
                         case 0:
                             c = fgetc(archivo);                        
                             if (c == 'r'){
+                                id[++i] = c;
                                 estado = 1;
                             }
                             else
@@ -284,6 +334,7 @@ void validar()
                         case 1:
                             c = fgetc(archivo);                       
                             if (c == 'u'){
+                                id[++i] = c;
                                 estado = 2;
                             }
                             else
@@ -292,6 +343,7 @@ void validar()
                         case 2:
                             c = fgetc(archivo);                        
                             if (c == 'e'){
+                                id[++i] = c;
                                 estado = 3;
                             }
                             else
@@ -310,7 +362,10 @@ void validar()
 						        ungetc(c,archivo);
 					        else
 						        c=0;
-                            tokens[pos++] = COD_TRUE;
+                            id[++i]='\0';
+                            strcpy(t.lexema,id);
+                            t.compLex = COD_TRUE;
+                            tokens[pos++] = t; 
 				            printf("PR_TRUE ");
                             acepto=1;
                             break;
@@ -336,6 +391,7 @@ void validar()
                         case 0:
                             c = fgetc(archivo);                      
                             if (c == 'R'){
+                                id[++i] = c;
                                 estado = 1;
                             }
                             else
@@ -344,6 +400,7 @@ void validar()
                         case 1:
                             c = fgetc(archivo);                        
                             if (c == 'U'){
+                                id[++i] = c;
                                 estado = 2;
                             }
                             else
@@ -352,6 +409,7 @@ void validar()
                         case 2:
                             c = fgetc(archivo);                        
                             if (c == 'E'){
+                                id[++i] = c;
                                 estado = 3;
                             }
                             else
@@ -371,7 +429,10 @@ void validar()
 						        ungetc(c,archivo);
 					        else
 						        c=0;
-                            tokens[pos++] = COD_TRUE;
+                            id[++i]='\0';
+                            strcpy(t.lexema,id);
+                            t.compLex = COD_FALSE;
+                            tokens[pos++] = t; 
 				            printf("PR_TRUE ");
                             acepto=1;
                             break;
@@ -401,6 +462,8 @@ void validar()
             estado = 0;
             acepto = 0;
             char aux = c;
+            i = 0;
+            id[i] = c;
             while(acepto == 0)
             {
                 if (aux == 'n'){
@@ -408,6 +471,7 @@ void validar()
                         case 0:
                             c = fgetc(archivo);                        
                             if (c == 'u'){
+                                id[++i] = c;
                                 estado = 1;
                             }
                             else
@@ -416,6 +480,7 @@ void validar()
                         case 1:
                             c = fgetc(archivo);                       
                             if (c == 'l'){
+                                id[++i] = c;
                                 estado = 2;
                             }
                             else
@@ -424,6 +489,7 @@ void validar()
                         case 2:
                             c = fgetc(archivo);                        
                             if (c == 'l'){
+                                id[++i] = c;
                                 estado = 3;
                             }
                             else
@@ -442,7 +508,10 @@ void validar()
 						        ungetc(c,archivo);
 					        else
 						        c=0;
-                            tokens[pos++] = COD_NULL;
+                            id[++i]='\0';
+                            strcpy(t.lexema,id);
+                            t.compLex = COD_NULL;
+                            tokens[pos++] = t; 
 				            printf("PR_NULL ");
                             acepto=1;
                             break;
@@ -468,6 +537,7 @@ void validar()
                         case 0:
                             c = fgetc(archivo);                      
                             if (c == 'U'){
+                                id[++i] = c;
                                 estado = 1;
                             }
                             else
@@ -476,6 +546,7 @@ void validar()
                         case 1:
                             c = fgetc(archivo);                        
                             if (c == 'L'){
+                                id[++i] = c;
                                 estado = 2;
                             }
                             else
@@ -484,6 +555,7 @@ void validar()
                         case 2:
                             c = fgetc(archivo);                        
                             if (c == 'L'){
+                                id[++i] = c;
                                 estado = 3;
                             }
                             else
@@ -503,7 +575,10 @@ void validar()
 						        ungetc(c,archivo);
 					        else
 						        c=0;
-                            tokens[pos++] = COD_NULL;
+                            id[++i]='\0';
+                            strcpy(t.lexema,id);
+                            t.compLex = COD_NULL;
+                            tokens[pos++] = t; 
 				            printf("PR_NULL ");
                             acepto=1;
                             break;
@@ -532,7 +607,8 @@ void validar()
         {//validar numero
             estado = 0;
             acepto = 0;
-				
+	        i = 0;
+            id[i] = c;
 			while(acepto == 0)
 			{
 			    switch(estado){
@@ -540,12 +616,15 @@ void validar()
 				        c=fgetc(archivo);
 				        if (isdigit(c))
 					    {
+                            id[++i]=c;
 						    estado=0;
 					    }
 					    else if(c=='.'){
+                            id[++i]=c;
 						    estado=1;
 					    }
 					    else if(tolower(c)=='e'){
+                            id[++i]=c;
 						    estado=3;
 					    }
 					    else{
@@ -556,6 +635,7 @@ void validar()
 				    case 1://un punto, debe seguir un digito
 				        c=fgetc(archivo);						
 					    if (isdigit(c)){
+                            id[++i]=c;
 						    estado=2;
 					    }
                         else{
@@ -567,10 +647,12 @@ void validar()
 					    c=fgetc(archivo);
 					    if (isdigit(c))
 					    {
+                            id[++i]=c;
 						    estado=2;
 					    }
 					    else if(tolower(c)=='e')
 					    {
+                            id[++i]=c;
 						    estado=3;
 					    }
 					    else
@@ -581,10 +663,12 @@ void validar()
 				        c=fgetc(archivo);
 					    if (c=='+' || c=='-')
 					    {
+                            id[++i]=c;
 						    estado=4;
 					    }
                         else if(isdigit(c))
 					    {
+                            id[++i]=c;
 						    estado=5;
 					    }
 					    else{
@@ -596,6 +680,7 @@ void validar()
 				        c=fgetc(archivo);
 					    if (isdigit(c))
 					    {
+                            id[++i]=c;
 						    estado=5;
 					    }
 					    else{
@@ -607,6 +692,7 @@ void validar()
 					    c=fgetc(archivo);
 					    if (isdigit(c))
 					    {
+                            id[++i]=c;
 						    estado=5;
 					    }
 					    else{
@@ -625,7 +711,10 @@ void validar()
 						    ungetc(c,archivo);
 					    else
 						    c=0;
-                        tokens[pos++] = COD_NUMBER;
+                        id[++i]='\0';
+                        strcpy(t.lexema,id);
+                        t.compLex = COD_NUMBER;
+                        tokens[pos++] = t; 
 				        printf("NUMBER ");
                         acepto=1;
                         break;
@@ -658,7 +747,9 @@ void validar()
         }
     }    
     if (c == EOF){
-        tokens[pos++] = EOF;
+        strcpy(t.lexema,id);
+        t.compLex = EOF;
+        tokens[pos++] = t; 
         fin = EOF;
     }
 
